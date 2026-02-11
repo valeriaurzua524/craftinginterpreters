@@ -1,0 +1,5 @@
+print 1;
+/* this is a
+multi-line
+block comment */
+print 2;

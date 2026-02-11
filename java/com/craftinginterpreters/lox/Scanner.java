@@ -11,6 +11,16 @@ import static com.craftinginterpreters.lox.TokenType.*; // [static-import]
 class Scanner {
 //> keyword-map
   private static final Map<String, TokenType> keywords;
+  private void blockComment(){
+    int depth=1;
+    while(depth>0&&!isAtEnd()){
+      if(peek()=='\n'){line++;advance();continue;}
+      if(peek()=='/'&&peekNext()=='*'){advance();advance();depth++;continue;}
+      if(peek()=='*'&&peekNext()=='/'){advance();advance();depth--;continue;}
+      advance();
+    }
+    if(depth>0)Lox.error(line,"Unterminated block comment.");
+  }
 
   static {
     keywords = new HashMap<>();
@@ -85,13 +95,15 @@ class Scanner {
 //< two-char-tokens
 //> slash
       case '/':
-        if (match('/')) {
-          // A comment goes until the end of the line.
-          while (peek() != '\n' && !isAtEnd()) advance();
-        } else {
+        if(match('/')){
+          while(peek()!='\n'&&!isAtEnd())advance();
+        }else if(match('*')){
+          blockComment();
+        }else{
           addToken(SLASH);
         }
         break;
+
 //< slash
 //> whitespace
 
