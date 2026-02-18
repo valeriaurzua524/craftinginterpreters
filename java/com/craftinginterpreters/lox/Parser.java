@@ -52,7 +52,7 @@ class Parser {
     return equality();
 */
 //> Statements and State expression
-    return assignment();
+    return comma();
 //< Statements and State expression
   }
 //< expression
@@ -286,7 +286,17 @@ class Parser {
     consume(RIGHT_BRACE, "Expect '}' after block.");
     return statements;
   }
-//< Statements and State block
+  private Expr comma(){
+    Expr expr=assignment();
+    while(match(COMMA)){
+      Token operator=previous();
+      Expr right=assignment();
+      expr=new Expr.Binary(expr,operator,right);
+    }
+    return expr;
+  }
+
+  //< Statements and State block
 //> Statements and State parse-assignment
   private Expr assignment() {
 /* Statements and State parse-assignment < Control Flow or-in-assignment
@@ -420,7 +430,7 @@ class Parser {
           error(peek(), "Can't have more than 255 arguments.");
         }
 //< check-max-arity
-        arguments.add(expression());
+        arguments.add(assignment());
       } while (match(COMMA));
     }
 
