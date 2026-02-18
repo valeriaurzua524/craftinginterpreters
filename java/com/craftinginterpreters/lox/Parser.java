@@ -511,6 +511,51 @@ private Expr ternary() {
       return new Expr.Grouping(expr);
     }
 //> primary-error
+// error production: binary operator with no left operand
+    if (match(PLUS, MINUS, STAR, SLASH,
+            BANG_EQUAL, EQUAL_EQUAL,
+            GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+            AND, OR)) {
+
+      Token op = previous();
+      error(op, "Missing left-hand operand.");
+
+      // parse + discard the RHS at the correct precedence level
+      switch (op.type) {
+        case PLUS:
+        case MINUS:
+          factor();
+          break;
+
+        case STAR:
+        case SLASH:
+          unary();
+          break;
+
+        case BANG_EQUAL:
+        case EQUAL_EQUAL:
+          comparison();
+          break;
+
+        case GREATER:
+        case GREATER_EQUAL:
+        case LESS:
+        case LESS_EQUAL:
+          term();
+          break;
+
+        case AND:
+          equality();
+          break;
+
+        case OR:
+          and();
+          break;
+      }
+
+      // return something harmless so parsing can continue
+      return new Expr.Literal(null);
+    }
 
     throw error(peek(), "Expect expression.");
 //< primary-error
