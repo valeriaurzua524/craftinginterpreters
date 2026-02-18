@@ -262,6 +262,17 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 //< Statements and State visit-assign
 //> visit-binary
+@Override
+public Object visitTernaryExpr(Expr.Ternary expr) {
+  Object condition = evaluate(expr.condition);
+
+  if (isTruthy(condition)) {
+    return evaluate(expr.thenBranch);
+  } else {
+    return evaluate(expr.elseBranch);
+  }
+}
+
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
     if (expr.operator.type == TokenType.COMMA) {

@@ -17,6 +17,8 @@ abstract class Expr {
     R visitThisExpr(This expr);
     R visitUnaryExpr(Unary expr);
     R visitVariableExpr(Variable expr);
+    R visitTernaryExpr(Ternary expr);
+
   }
 
   // Nested Expr classes here...
@@ -181,7 +183,24 @@ abstract class Expr {
 
     final Token keyword;
   }
-//< expr-this
+  static class Ternary extends Expr {
+    final Expr condition;
+    final Expr thenBranch;
+    final Expr elseBranch;
+
+    Ternary(Expr condition, Expr thenBranch, Expr elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitTernaryExpr(this);
+    }
+  }
+
+  //< expr-this
 //> expr-unary
   static class Unary extends Expr {
     Unary(Token operator, Expr right) {

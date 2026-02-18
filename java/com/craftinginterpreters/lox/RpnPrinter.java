@@ -68,6 +68,18 @@ public class RpnPrinter implements Expr.Visitor<String>{
         return "this";
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        // RPN style: condition thenBranch elseBranch ?:
+        return j(
+                expr.condition.accept(this),
+                expr.thenBranch.accept(this),
+                expr.elseBranch.accept(this),
+                "?:"
+        );
+    }
+
+
     @Override public String visitSuperExpr(Expr.Super e){
         return j("super",e.method.lexeme);
     }

@@ -138,7 +138,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(stmt.expression);
     return null;
   }
-//< visit-expression-stmt
+  @Override
+  public Void visitTernaryExpr(Expr.Ternary expr) {
+    resolve(expr.condition);
+    resolve(expr.thenBranch);
+    resolve(expr.elseBranch);
+    return null;
+  }
+
+  //< visit-expression-stmt
 //> visit-function-stmt
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {

@@ -303,7 +303,7 @@ class Parser {
     Expr expr = equality();
 */
 //> Control Flow or-in-assignment
-    Expr expr = or();
+    Expr expr = ternary();
 //< Control Flow or-in-assignment
 
     if (match(EQUAL)) {
@@ -421,6 +421,20 @@ class Parser {
   }
 //< unary
 //> Functions finish-call
+private Expr ternary() {
+  Expr expr = or(); // IMPORTANT: NOT ternary()
+
+  if (match(QUESTION)) {
+    Expr thenBranch = assignment(); // allows comma expressions etc
+    consume(COLON, "Expect ':' after then branch of conditional expression.");
+    Expr elseBranch = ternary(); // right-associative is OK here
+    expr = new Expr.Ternary(expr, thenBranch, elseBranch);
+  }
+
+  return expr;
+}
+
+
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {

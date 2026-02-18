@@ -36,6 +36,14 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   }
 //< Statements and State omit
 //> Classes omit
+@Override
+public String visitTernaryExpr(Expr.Ternary expr) {
+  return parenthesize("?:",
+          expr.condition,
+          expr.thenBranch,
+          expr.elseBranch);
+}
+
 
   @Override
   public String visitClassStmt(Stmt.Class stmt) {
