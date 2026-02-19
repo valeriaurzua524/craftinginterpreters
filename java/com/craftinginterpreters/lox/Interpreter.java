@@ -317,20 +317,19 @@ public Object visitTernaryExpr(Expr.Ternary expr) {
         return (double)left - (double)right;
 //> binary-plus
       case PLUS:
+        // normal number + number
         if (left instanceof Double && right instanceof Double) {
-          return (double)left + (double)right;
-        } // [plus]
-
-        if (left instanceof String && right instanceof String) {
-          return (String)left + (String)right;
+          return (double) left + (double) right;
         }
 
-/* Evaluating Expressions binary-plus < Evaluating Expressions string-wrong-type
-        break;
-*/
-//> string-wrong-type
+        // if either is a string, stringify both and concat
+        if (left instanceof String || right instanceof String) {
+          return stringify(left) + stringify(right);
+        }
+
         throw new RuntimeError(expr.operator,
-            "Operands must be two numbers or two strings.");
+                "Operands must be two numbers or at least one string.");
+
 //< string-wrong-type
 //< binary-plus
       case SLASH:
