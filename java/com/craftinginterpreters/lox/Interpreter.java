@@ -333,10 +333,14 @@ public Object visitTernaryExpr(Expr.Ternary expr) {
 //< string-wrong-type
 //< binary-plus
       case SLASH:
-//> check-slash-operand
         checkNumberOperands(expr.operator, left, right);
-//< check-slash-operand
+
+        if ((double) right == 0) {
+          throw new RuntimeError(expr.operator, "Cannot divide by zero.");
+        }
+
         return (double)left / (double)right;
+
       case STAR:
 //> check-star-operand
         checkNumberOperands(expr.operator, left, right);
