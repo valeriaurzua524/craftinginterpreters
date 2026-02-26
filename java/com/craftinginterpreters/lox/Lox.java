@@ -45,20 +45,37 @@ public class Lox {
   }
 //< run-file
 //> prompt
-  private static void runPrompt() throws IOException {
-    InputStreamReader input = new InputStreamReader(System.in);
-    BufferedReader reader = new BufferedReader(input);
+private static void runPrompt() throws IOException {
+  InputStreamReader input = new InputStreamReader(System.in);
+  BufferedReader reader = new BufferedReader(input);
 
-    for (;;) { // [repl]
-      System.out.print("> ");
-      String line = reader.readLine();
-      if (line == null) break;
-      run(line);
-//> reset-had-error
-      hadError = false;
-//< reset-had-error
+  for (;;) { // [repl]
+    System.out.print("> ");
+    String line = reader.readLine();
+    if (line == null) break;
+
+    // 1) First try normal mode (statements)
+    run(line);
+
+    // 2) If that had a parse error, retry as a single expression
+    if (hadError) {
+      hadError = false; // reset before retry
+
+      Scanner scanner = new Scanner(line);
+      List<Token> tokens = scanner.scanTokens();
+      Parser parser = new Parser(tokens);
+
+      Expr expr = parser.parseExpression();
+      if (expr != null && !hadError) {
+        Object value = interpreter.evaluateForRepl(expr);
+        System.out.println(interpreter.stringifyForRepl(value));
+      }
     }
+
+    // reset so a bad line doesn't kill the whole repl
+    hadError = false;
   }
+}
 //< prompt
 //> run
   private static void run(String source) {

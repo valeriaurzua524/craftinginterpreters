@@ -1,5 +1,6 @@
 //> Evaluating Expressions interpreter-class
 package com.craftinginterpreters.lox;
+
 //> Statements and State import-list
 
 //> Functions import-array-list
@@ -221,16 +222,19 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 //< Functions visit-return
 //> Statements and State visit-var
-  @Override
-  public Void visitVarStmt(Stmt.Var stmt) {
-    Object value = null;
-    if (stmt.initializer != null) {
-      value = evaluate(stmt.initializer);
-    }
+@Override
+public Void visitVarStmt(Stmt.Var stmt) {
+  Object value = null;
 
+  if (stmt.initializer != null) {
+    value = evaluate(stmt.initializer);
     environment.define(stmt.name.lexeme, value);
-    return null;
+  } else {
+    environment.defineUninitialized(stmt.name.lexeme);
   }
+
+  return null;
+}
 //< Statements and State visit-var
 //> Control Flow visit-while
   @Override
@@ -350,6 +354,13 @@ public Object visitTernaryExpr(Expr.Ternary expr) {
 
     // Unreachable.
     return null;
+  }
+  Object evaluateForRepl(Expr expr) {
+    return evaluate(expr);
+  }
+
+  String stringifyForRepl(Object value) {
+    return stringify(value);
   }
 //< visit-binary
 //> Functions visit-call

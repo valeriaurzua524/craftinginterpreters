@@ -561,6 +561,15 @@ private Expr ternary() {
 //< primary-error
   }
 //< primary
+Expr parseExpression() {
+  try {
+    Expr expr = expression();
+    consume(EOF, "Expect end of expression.");
+    return expr;
+  } catch (ParseError error) {
+    return null;
+  }
+}
 //> match
   private boolean match(TokenType... types) {
     for (TokenType type : types) {

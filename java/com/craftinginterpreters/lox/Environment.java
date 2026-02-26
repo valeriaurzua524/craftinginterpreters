@@ -1,10 +1,16 @@
 //> Statements and State environment-class
 package com.craftinginterpreters.lox;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
 class Environment {
+  private static final Object UNINITIALIZED = new Object();
+
+  void defineUninitialized(String name) {
+    values.put(name, UNINITIALIZED);
+  }
 //> enclosing-field
   final Environment enclosing;
 //< enclosing-field
@@ -68,9 +74,17 @@ class Environment {
   }
 //< Resolving and Binding ancestor
 //> Resolving and Binding get-at
-  Object getAt(int distance, String name) {
-    return ancestor(distance).values.get(name);
+Object getAt(int distance, String name) {
+  Object value = ancestor(distance).values.get(name);
+
+  if (value == UNINITIALIZED) {
+    throw new RuntimeError(
+            new Token(TokenType.IDENTIFIER, name, null, 0),
+            "Variable '" + name + "' was not initialized.");
   }
+
+  return value;
+}
 //< Resolving and Binding get-at
 //> Resolving and Binding assign-at
   void assignAt(int distance, Token name, Object value) {
