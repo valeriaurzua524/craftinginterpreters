@@ -120,9 +120,19 @@ class Parser {
 //< Control Flow match-while
 //> parse-block
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
+    if (match(BREAK)) return breakStatement();
 //< parse-block
 
     return expressionStatement();
+  }
+  private int loopDepth = 0;
+
+  private Stmt breakStatement() {
+    consume(SEMICOLON, "Expect ';' after 'break'.");
+    if (loopDepth == 0) {
+      error(previous(), "Cannot use 'break' outside of a loop.");
+    }
+    return new Stmt.Break();
   }
 //< Statements and State parse-statement
 //> Control Flow for-statement
@@ -233,14 +243,17 @@ class Parser {
   }
 //< Statements and State parse-var-declaration
 //> Control Flow while-statement
-  private Stmt whileStatement() {
-    consume(LEFT_PAREN, "Expect '(' after 'while'.");
-    Expr condition = expression();
-    consume(RIGHT_PAREN, "Expect ')' after condition.");
-    Stmt body = statement();
+private Stmt whileStatement() {
+  consume(LEFT_PAREN, "Expect '(' after 'while'.");
+  Expr condition = expression();
+  consume(RIGHT_PAREN, "Expect ')' after condition.");
 
-    return new Stmt.While(condition, body);
-  }
+  loopDepth++;
+  Stmt body = statement();
+  loopDepth--;
+
+  return new Stmt.While(condition, body);
+}
 //< Control Flow while-statement
 //> Statements and State parse-expression-statement
   private Stmt expressionStatement() {

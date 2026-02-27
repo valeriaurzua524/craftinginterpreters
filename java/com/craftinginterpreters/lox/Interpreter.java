@@ -90,6 +90,11 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 //< Resolving and Binding resolve
 //> Statements and State execute-block
+private static class BreakException extends RuntimeException {}
+  @Override
+  public Void visitBreakStmt(Stmt.Break stmt) {
+    throw new BreakException();
+  }
   void executeBlock(List<Stmt> statements,
                     Environment environment) {
     Environment previous = this.environment;
@@ -237,13 +242,17 @@ public Void visitVarStmt(Stmt.Var stmt) {
 }
 //< Statements and State visit-var
 //> Control Flow visit-while
-  @Override
-  public Void visitWhileStmt(Stmt.While stmt) {
+@Override
+public Void visitWhileStmt(Stmt.While stmt) {
+  try {
     while (isTruthy(evaluate(stmt.condition))) {
       execute(stmt.body);
     }
-    return null;
+  } catch (BreakException ex) {
+    // break exits the loop
   }
+  return null;
+}
 //< Control Flow visit-while
 //> Statements and State visit-assign
   @Override
@@ -548,6 +557,7 @@ public Object visitTernaryExpr(Expr.Ternary expr) {
     return a.equals(b);
   }
 //< is-equal
+
 //> stringify
   private String stringify(Object object) {
     if (object == null) return "nil";
