@@ -116,10 +116,6 @@ private static class BreakException extends RuntimeException {}
     return null;
   }
 //< Statements and State visit-block
-@Override
-public Object visitFunctionExpr(Expr.Function expr) {
-  return new LoxFunction(expr, environment);
-}
 //> Classes interpreter-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
