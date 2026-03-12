@@ -15,10 +15,11 @@ private final Stack<Map<String, VariableInfo>> scopes = new Stack<>();
 //> function-type-field
   private FunctionType currentFunction = FunctionType.NONE;
 //< function-type-field
-private static class VariableInfo {
-  boolean defined;
-  boolean used;
 
+
+  private static class VariableInfo {
+    boolean defined;
+    boolean used;
   VariableInfo(boolean defined) {
     this.defined = defined;
     this.used = false;

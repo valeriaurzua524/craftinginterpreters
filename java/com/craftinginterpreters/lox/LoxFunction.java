@@ -17,15 +17,14 @@ class LoxFunction implements LoxCallable {
 */
 //> Classes is-initializer-field
   private final boolean isInitializer;
+  private final boolean isGetter;
 
   LoxFunction(Stmt.Function declaration, Environment closure,
-              boolean isInitializer) {
-    this.isInitializer = isInitializer;
-//< Classes is-initializer-field
-//> closure-constructor
-    this.closure = closure;
-//< closure-constructor
+              boolean isInitializer, boolean isGetter) {
     this.declaration = declaration;
+    this.closure = closure;
+    this.isInitializer = isInitializer;
+    this.isGetter = isGetter;
   }
 //> Classes bind-instance
   LoxFunction bind(LoxInstance instance) {
@@ -35,8 +34,7 @@ class LoxFunction implements LoxCallable {
     return new LoxFunction(declaration, environment);
 */
 //> lox-function-bind-with-initializer
-    return new LoxFunction(declaration, environment,
-                           isInitializer);
+    return new LoxFunction(declaration, environment, isInitializer, isGetter);
 //< lox-function-bind-with-initializer
   }
 //< Classes bind-instance

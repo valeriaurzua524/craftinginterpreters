@@ -31,6 +31,7 @@ class Parser {
     }
   }
 */
+
 //> Statements and State parse
   List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
@@ -75,33 +76,31 @@ class Parser {
   }
 //< Statements and State declaration
 //> Classes parse-class-declaration
-  private Stmt classDeclaration() {
-    Token name = consume(IDENTIFIER, "Expect class name.");
-//> Inheritance parse-superclass
+private Stmt classDeclaration() {
+  Token name = consume(IDENTIFIER, "Expect class name.");
 
-    Expr.Variable superclass = null;
-    if (match(LESS)) {
-      consume(IDENTIFIER, "Expect superclass name.");
-      superclass = new Expr.Variable(previous());
-    }
+  Expr.Variable superclass = null;
+  if (match(LESS)) {
+    consume(IDENTIFIER, "Expect superclass name.");
+    superclass = new Expr.Variable(previous());
+  }
 
-//< Inheritance parse-superclass
-    consume(LEFT_BRACE, "Expect '{' before class body.");
+  consume(LEFT_BRACE, "Expect '{' before class body.");
 
-    List<Stmt.Function> methods = new ArrayList<>();
-    while (!check(RIGHT_BRACE) && !isAtEnd()) {
+  List<Stmt.Function> methods = new ArrayList<>();
+  List<Stmt.Function> classMethods = new ArrayList<>();
+
+  while (!check(RIGHT_BRACE) && !isAtEnd()) {
+    if (match(CLASS)) {
+      classMethods.add(function("method"));
+    } else {
       methods.add(function("method"));
     }
-
-    consume(RIGHT_BRACE, "Expect '}' after class body.");
-
-/* Classes parse-class-declaration < Inheritance construct-class-ast
-    return new Stmt.Class(name, methods);
-*/
-//> Inheritance construct-class-ast
-    return new Stmt.Class(name, superclass, methods);
-//< Inheritance construct-class-ast
   }
+
+  consume(RIGHT_BRACE, "Expect '}' after class body.");
+  return new Stmt.Class(name, superclass, methods, classMethods);
+}
 //< Classes parse-class-declaration
 //> Statements and State parse-statement
   private Stmt statement() {
@@ -242,6 +241,7 @@ class Parser {
     return new Stmt.Var(name, initializer);
   }
 //< Statements and State parse-var-declaration
+
 //> Control Flow while-statement
 private Stmt whileStatement() {
   consume(LEFT_PAREN, "Expect '(' after 'while'.");
@@ -265,22 +265,22 @@ private Stmt whileStatement() {
 //> Functions parse-function
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
-//> parse-parameters
-    consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-    List<Token> parameters = new ArrayList<>();
-    if (!check(RIGHT_PAREN)) {
-      do {
-        if (parameters.size() >= 255) {
-          error(peek(), "Can't have more than 255 parameters.");
-        }
 
-        parameters.add(
-            consume(IDENTIFIER, "Expect parameter name."));
-      } while (match(COMMA));
+    List<Token> parameters = new ArrayList<>();
+
+    if (match(LEFT_PAREN)) {
+      if (!check(RIGHT_PAREN)) {
+        do {
+          if (parameters.size() >= 255) {
+            error(peek(), "Can't have more than 255 parameters.");
+          }
+          parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+        } while (match(COMMA));
+      }
+      consume(RIGHT_PAREN, "Expect ')' after parameters.");
+    } else if (!kind.equals("method")) {
+      throw error(peek(), "Expect '(' after " + kind + " name.");
     }
-    consume(RIGHT_PAREN, "Expect ')' after parameters.");
-//< parse-parameters
-//> parse-body
 
     consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
     List<Stmt> body = block();

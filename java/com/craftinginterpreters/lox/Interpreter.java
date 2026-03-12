@@ -30,7 +30,8 @@ class Interpreter implements Expr.Visitor<Object>,
   private Environment environment = globals;
 //< Functions global-environment
 //> Resolving and Binding locals-field
-  private final Map<Expr, Integer> locals = new HashMap<>();
+private final Map<Expr, Integer> locals = new HashMap<>();
+ // private final Map<Expr, ResolvedVar> locals = new HashMap<>();
 //< Resolving and Binding locals-field
 //> Statements and State environment-field
 
@@ -85,9 +86,11 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 //< Statements and State execute
 //> Resolving and Binding resolve
-  void resolve(Expr expr, int depth) {
-    locals.put(expr, depth);
-  }
+void resolve(Expr expr, int depth) {
+  locals.put(expr, depth);
+}
+
+
 //< Resolving and Binding resolve
 //> Statements and State execute-block
 private static class BreakException extends RuntimeException {}
@@ -557,6 +560,15 @@ public Object visitTernaryExpr(Expr.Ternary expr) {
     return a.equals(b);
   }
 //< is-equal
+private static class ResolvedVar {
+  final int depth;
+  final int index;
+
+  ResolvedVar(int depth, int index) {
+    this.depth = depth;
+    this.index = index;
+  }
+}
 
 //> stringify
   private String stringify(Object object) {
