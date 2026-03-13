@@ -17,7 +17,10 @@ abstract class Expr {
     R visitThisExpr(This expr);
     R visitUnaryExpr(Unary expr);
     R visitVariableExpr(Variable expr);
-    R visitTernaryExpr(Ternary expr);
+
+
+
+      R visitTernaryExpr(Ternary expr);
 
   }
 

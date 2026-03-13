@@ -15,6 +15,7 @@ abstract class Stmt {
     R visitVarStmt(Var stmt);
     R visitWhileStmt(While stmt);
     R visitBreakStmt(Break stmt);
+    R visitContinueStmt(Continue stmt);
   }
 
   // Nested Stmt classes here...
@@ -33,24 +34,27 @@ abstract class Stmt {
   }
 //< stmt-block
 //> stmt-class
-  static class Class extends Stmt {
-    Class(Token name,
-          Expr.Variable superclass,
-          List<Function> methods, List<Function> classMethods) {
-      this.name = name;
-      this.superclass = superclass;
-      this.methods = methods;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitClassStmt(this);
-    }
-
-    final Token name;
-    final Expr.Variable superclass;
-    final List<Stmt.Function> methods;
+static class Class extends Stmt {
+  Class(Token name,
+        Expr.Variable superclass,
+        List<Function> methods,
+        List<Function> classMethods) {
+    this.name = name;
+    this.superclass = superclass;
+    this.methods = methods;
+    this.classMethods = classMethods;
   }
+
+  @Override
+  <R> R accept(Visitor<R> visitor) {
+    return visitor.visitClassStmt(this);
+  }
+
+  final Token name;
+  final Expr.Variable superclass;
+  final List<Stmt.Function> methods;
+  final List<Stmt.Function> classMethods;
+}
 //< stmt-class
 //> stmt-expression
   static class Expression extends Stmt {
@@ -149,12 +153,16 @@ abstract class Stmt {
   }
 //< stmt-var
 static class Break extends Stmt {
-  Break() {}
+  Break(Token keyword) {
+    this.keyword = keyword;
+  }
 
   @Override
   <R> R accept(Visitor<R> visitor) {
     return visitor.visitBreakStmt(this);
   }
+
+  final Token keyword;
 }
 //> stmt-while
   static class While extends Stmt {
@@ -174,5 +182,19 @@ static class Break extends Stmt {
 //< stmt-while
 
   abstract <R> R accept(Visitor<R> visitor);
-}
+
+  static class Continue extends Stmt {
+    Continue(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitContinueStmt(this);
+    }
+
+    final Token keyword;
+  }
+  }
+
 //< Appendix II stmt

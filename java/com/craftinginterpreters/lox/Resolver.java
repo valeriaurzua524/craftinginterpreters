@@ -76,6 +76,10 @@ private final Stack<Map<String, VariableInfo>> scopes = new Stack<>();
     return null;
   }
   @Override
+  public Void visitContinueStmt(Stmt.Continue stmt) {
+    return null;
+  }
+  @Override
   public Void visitBreakStmt(Stmt.Break stmt) {
     return null;
   }

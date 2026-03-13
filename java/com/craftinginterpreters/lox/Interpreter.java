@@ -28,6 +28,7 @@ class Interpreter implements Expr.Visitor<Object>,
 //> Functions global-environment
   final Environment globals = new Environment();
   private Environment environment = globals;
+  private static class ContinueException extends RuntimeException {}
 //< Functions global-environment
 //> Resolving and Binding locals-field
 private final Map<Expr, Integer> locals = new HashMap<>();
@@ -95,6 +96,10 @@ void resolve(Expr expr, int depth) {
 //> Statements and State execute-block
 private static class BreakException extends RuntimeException {}
   @Override
+  public Void visitContinueStmt(Stmt.Continue stmt) {
+    throw new ContinueException();
+  }
+  @Override
   public Void visitBreakStmt(Stmt.Break stmt) {
     throw new BreakException();
   }
@@ -111,6 +116,7 @@ private static class BreakException extends RuntimeException {}
       this.environment = previous;
     }
   }
+
 //< Statements and State execute-block
 //> Statements and State visit-block
   @Override
@@ -247,12 +253,14 @@ public Void visitVarStmt(Stmt.Var stmt) {
 //> Control Flow visit-while
 @Override
 public Void visitWhileStmt(Stmt.While stmt) {
-  try {
-    while (isTruthy(evaluate(stmt.condition))) {
+  while (isTruthy(evaluate(stmt.condition))) {
+    try {
       execute(stmt.body);
+    } catch (ContinueException ex) {
+      // skip rest of body, continue next iteration
+    } catch (BreakException ex) {
+      break;
     }
-  } catch (BreakException ex) {
-    // break exits the loop
   }
   return null;
 }

@@ -120,6 +120,7 @@ private Stmt classDeclaration() {
 //> parse-block
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
     if (match(BREAK)) return breakStatement();
+    if (match(CONTINUE)) return continueStatement();
 //< parse-block
 
     return expressionStatement();
@@ -127,11 +128,12 @@ private Stmt classDeclaration() {
   private int loopDepth = 0;
 
   private Stmt breakStatement() {
+    Token keyword = previous();
     consume(SEMICOLON, "Expect ';' after 'break'.");
     if (loopDepth == 0) {
-      error(previous(), "Cannot use 'break' outside of a loop.");
+      error(keyword, "Cannot use 'break' outside of a loop.");
     }
-    return new Stmt.Break();
+    return new Stmt.Break(keyword);
   }
 //< Statements and State parse-statement
 //> Control Flow for-statement
@@ -192,6 +194,14 @@ private Stmt classDeclaration() {
 //< for-desugar-initializer
     return body;
 //< for-body
+  }
+  private Stmt continueStatement() {
+    Token keyword = previous();
+    consume(SEMICOLON, "Expect ';' after 'continue'.");
+    if (loopDepth == 0) {
+      error(keyword, "Cannot use 'continue' outside of a loop.");
+    }
+    return new Stmt.Continue(keyword);
   }
 //< Control Flow for-statement
 //> Control Flow if-statement
@@ -264,6 +274,7 @@ private Stmt whileStatement() {
 //< Statements and State parse-expression-statement
 //> Functions parse-function
   private Stmt.Function function(String kind) {
+
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
 
     List<Token> parameters = new ArrayList<>();

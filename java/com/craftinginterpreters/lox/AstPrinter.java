@@ -34,6 +34,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
+  @Override
+  public String visitContinueStmt(Stmt.Continue stmt) {
+    return "(continue)";
+  }
 //< Statements and State omit
 @Override
 public String visitBreakStmt(Stmt.Break stmt) {

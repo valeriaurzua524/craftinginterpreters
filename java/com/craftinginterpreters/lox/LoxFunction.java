@@ -20,7 +20,7 @@ class LoxFunction implements LoxCallable {
   private final boolean isGetter;
 
   LoxFunction(Stmt.Function declaration, Environment closure,
-              boolean isInitializer, boolean isGetter) {
+              boolean isInitializer) {
     this.declaration = declaration;
     this.closure = closure;
     this.isInitializer = isInitializer;
@@ -34,7 +34,7 @@ class LoxFunction implements LoxCallable {
     return new LoxFunction(declaration, environment);
 */
 //> lox-function-bind-with-initializer
-    return new LoxFunction(declaration, environment, isInitializer, isGetter);
+    return new LoxFunction(declaration, environment, isInitializer);
 //< lox-function-bind-with-initializer
   }
 //< Classes bind-instance

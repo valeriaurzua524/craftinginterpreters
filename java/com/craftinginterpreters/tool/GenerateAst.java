@@ -57,12 +57,12 @@ public class GenerateAst {
       "Class      : Token name, List<Stmt.Function> methods",
 */
 //> Inheritance superclass-ast
-      "Class      : Token name, Expr.Variable superclass," +
-                  " List<Stmt.Function> methods",
+            "Class      : Token name, Expr.Variable superclass," +
+                    " List<Stmt.Function> methods, List<Stmt.Function> classMethods",
 //< Inheritance superclass-ast
       "Expression : Expr expression",
 //> Functions function-ast
-            "Function   : Token name, List<Token> params, List<Stmt> body, boolean isGetter",
+            "Function   : Token name, List<Token> params, List<Stmt> body",
 //< Functions function-ast
 //> Control Flow if-ast
       "If         : Expr condition, Stmt thenBranch," +
@@ -73,19 +73,13 @@ public class GenerateAst {
 
 */
 //> var-stmt-ast
-      "Print      : Expr expression",
-//< var-stmt-ast
-//> Functions return-ast
-      "Return     : Token keyword, Expr value",
-//< Functions return-ast
-/* Statements and State var-stmt-ast < Control Flow while-ast
-      "Var        : Token name, Expr initializer"
-*/
-            "Inner    : Token keyword",
-//> Control Flow while-ast
-      "Var        : Token name, Expr initializer",
+            "Print      : Expr expression",
+            "Return     : Token keyword, Expr value",
+            "Continue   : Token keyword",
+            "Var        : Token name, Expr initializer",
             "While      : Expr condition, Stmt body",
-            "Break      :"
+            "Break      : Token keyword"
+
 //< Control Flow while-ast
     ));
 //< Statements and State stmt-ast
