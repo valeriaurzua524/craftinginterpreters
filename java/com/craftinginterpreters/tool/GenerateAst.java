@@ -70,6 +70,7 @@ public class GenerateAst {
 //< Control Flow if-ast
 /* Statements and State stmt-ast < Statements and State var-stmt-ast
       "Print      : Expr expression"
+
 */
 //> var-stmt-ast
       "Print      : Expr expression",
@@ -80,6 +81,7 @@ public class GenerateAst {
 /* Statements and State var-stmt-ast < Control Flow while-ast
       "Var        : Token name, Expr initializer"
 */
+            "Inner    : Token keyword",
 //> Control Flow while-ast
       "Var        : Token name, Expr initializer",
             "While      : Expr condition, Stmt body",

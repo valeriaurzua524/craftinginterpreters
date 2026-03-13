@@ -41,6 +41,7 @@ class Scanner {
     keywords.put("var",    VAR);
     keywords.put("while",  WHILE);
     keywords.put("break", BREAK);
+    keywords.put("inner", TokenType.INNER);
   }
 //< keyword-map
   private final String source;
