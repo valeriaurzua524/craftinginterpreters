@@ -15,6 +15,9 @@ void initChunk(Chunk* chunk) {
   chunk->code = NULL;
 //> chunk-null-lines
   chunk->lines = NULL;
+  chunk->lineCount = 0;
+  chunk->lineCapacity = 0;
+  chunk->lines = NULL;
 //< chunk-null-lines
 //> chunk-init-constant-array
   initValueArray(&chunk->constants);
@@ -24,7 +27,7 @@ void initChunk(Chunk* chunk) {
 void freeChunk(Chunk* chunk) {
   FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
 //> chunk-free-lines
-  FREE_ARRAY(int, chunk->lines, chunk->capacity);
+FREE_ARRAY(LineStart, chunk->lines, chunk->lineCapacity);
 //< chunk-free-lines
 //> chunk-free-constants
   freeValueArray(&chunk->constants);
@@ -38,23 +41,43 @@ void writeChunk(Chunk* chunk, uint8_t byte) {
 //> write-chunk
 //> write-chunk-with-line
 void writeChunk(Chunk* chunk, uint8_t byte, int line) {
-//< write-chunk-with-line
   if (chunk->capacity < chunk->count + 1) {
     int oldCapacity = chunk->capacity;
     chunk->capacity = GROW_CAPACITY(oldCapacity);
     chunk->code = GROW_ARRAY(uint8_t, chunk->code,
-        oldCapacity, chunk->capacity);
-//> write-chunk-line
-    chunk->lines = GROW_ARRAY(int, chunk->lines,
-        oldCapacity, chunk->capacity);
-//< write-chunk-line
+                             oldCapacity, chunk->capacity);
   }
 
   chunk->code[chunk->count] = byte;
-//> chunk-write-line
-  chunk->lines[chunk->count] = line;
-//< chunk-write-line
   chunk->count++;
+
+  if (chunk->lineCount > 0 &&
+      chunk->lines[chunk->lineCount - 1].line == line) {
+    chunk->lines[chunk->lineCount - 1].count++;
+  } else {
+    if (chunk->lineCapacity < chunk->lineCount + 1) {
+      int oldCapacity = chunk->lineCapacity;
+      chunk->lineCapacity = GROW_CAPACITY(oldCapacity);
+      chunk->lines = GROW_ARRAY(LineStart, chunk->lines,
+                                oldCapacity, chunk->lineCapacity);
+    }
+
+    chunk->lines[chunk->lineCount].line = line;
+    chunk->lines[chunk->lineCount].count = 1;
+    chunk->lineCount++;
+  }
+}
+int getLine(Chunk* chunk, int instruction) {
+  int accumulated = 0;
+
+  for (int i = 0; i < chunk->lineCount; i++) {
+    accumulated += chunk->lines[i].count;
+    if (instruction < accumulated) {
+      return chunk->lines[i].line;
+    }
+  }
+
+  return -1;
 }
 //< write-chunk
 //> add-constant

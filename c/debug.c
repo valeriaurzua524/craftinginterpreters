@@ -66,15 +66,15 @@ static int jumpInstruction(const char* name, int sign,
 //> disassemble-instruction
 int disassembleInstruction(Chunk* chunk, int offset) {
   printf("%04d ", offset);
-//> show-location
-  if (offset > 0 &&
-      chunk->lines[offset] == chunk->lines[offset - 1]) {
+
+  int line = getLine(chunk, offset);
+
+  if (offset > 0 && line == getLine(chunk, offset - 1)) {
     printf("   | ");
   } else {
-    printf("%4d ", chunk->lines[offset]);
+    printf("%4d ", line);
   }
-//< show-location
-  
+
   uint8_t instruction = chunk->code[offset];
   switch (instruction) {
 //> disassemble-constant
