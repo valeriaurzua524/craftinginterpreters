@@ -89,11 +89,7 @@ int main(int argc, const char* argv[]) {
 */
 /* Chunks of Bytecode main-constant < Scanning on Demand args
 
-  int constant = addConstant(&chunk, 1.2);
-*/
-/* Chunks of Bytecode main-constant < Chunks of Bytecode main-chunk-line
-  writeChunk(&chunk, OP_CONSTANT);
-  writeChunk(&chunk, constant);
+writeConstant(&chunk, 1.2, line);
 
 */
 /* Chunks of Bytecode main-chunk-line < Scanning on Demand args

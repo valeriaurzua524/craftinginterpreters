@@ -148,6 +148,14 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 //> Types of Values disassemble-not
     case OP_NOT:
       return simpleInstruction("OP_NOT", offset);
+    case OP_CONSTANT:
+      return constantInstruction("OP_CONSTANT", chunk, offset);
+
+    case OP_CONSTANT_LONG:
+      return constantLongInstruction("OP_CONSTANT_LONG", chunk, offset);
+
+    case OP_RETURN:
+      return simpleInstruction("OP_RETURN", offset);
 //< Types of Values disassemble-not
 //< A Virtual Machine disassemble-binary
 //> A Virtual Machine disassemble-negate

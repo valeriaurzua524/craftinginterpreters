@@ -34,6 +34,32 @@ FREE_ARRAY(LineStart, chunk->lines, chunk->lineCapacity);
 //< chunk-free-constants
   initChunk(chunk);
 }
+
+void writeConstant(Chunk* chunk, Value value, int line) {
+  int constant = addConstant(chunk, value);
+
+  if (constant <= 0xff) {
+    writeChunk(chunk, OP_CONSTANT, line);
+    writeChunk(chunk, (uint8_t)constant, line);
+  } else {
+    writeChunk(chunk, OP_CONSTANT_LONG, line);
+    writeChunk(chunk, (constant >> 16) & 0xff, line);
+    writeChunk(chunk, (constant >> 8) & 0xff, line);
+    writeChunk(chunk, constant & 0xff, line);
+  }
+}
+static int constantLongInstruction(const char* name, Chunk* chunk,
+                                   int offset) {
+  uint32_t constant = (uint32_t)(chunk->code[offset + 1] << 16);
+  constant |= (uint32_t)(chunk->code[offset + 2] << 8);
+  constant |= chunk->code[offset + 3];
+
+  printf("%-16s %4d '", name, constant);
+  printValue(chunk->constants.values[constant]);
+  printf("'\n");
+
+  return offset + 4;
+}
 //< free-chunk
 /* Chunks of Bytecode write-chunk < Chunks of Bytecode write-chunk-with-line
 void writeChunk(Chunk* chunk, uint8_t byte) {
