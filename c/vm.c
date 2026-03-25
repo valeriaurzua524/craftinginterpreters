@@ -97,6 +97,8 @@ static void defineNative(const char* name, NativeFn function) {
 
 void initVM() {
 //> call-reset-stack
+  vm.stackCapacity = 8;
+  vm.stack = ALLOCATE(Value, vm.stackCapacity);
   resetStack();
 //< call-reset-stack
 //> Strings init-objects-root
@@ -133,6 +135,7 @@ void initVM() {
 }
 
 void freeVM() {
+  FREE_ARRAY(Value, vm.stack, vm.stackCapacity);
 //> Global Variables free-globals
   freeTable(&vm.globals);
 //< Global Variables free-globals
@@ -148,6 +151,16 @@ void freeVM() {
 }
 //> push
 void push(Value value) {
+  int count = (int)(vm.stackTop - vm.stack);
+
+  if (count >= vm.stackCapacity) {
+    int oldCapacity = vm.stackCapacity;
+    vm.stackCapacity = GROW_CAPACITY(oldCapacity);
+    vm.stack = GROW_ARRAY(Value, vm.stack,
+                          oldCapacity, vm.stackCapacity);
+    vm.stackTop = vm.stack + count;
+  }
+
   *vm.stackTop = value;
   vm.stackTop++;
 }
@@ -644,9 +657,11 @@ static InterpretResult run() {
       case OP_MULTIPLY: BINARY_OP(*); break;
       case OP_DIVIDE:   BINARY_OP(/); break;
 */
-/* A Virtual Machine op-negate < Types of Values op-negate
-      case OP_NEGATE:   push(-pop()); break;
-*/
+ A Virtual Machine op-negate < Types of Values op-negate
+case OP_NEGATE:
+  vm.stackTop[-1] = NUMBER_VAL(-AS_NUMBER(vm.stackTop[-1]));
+  break;
+
 /* Types of Values op-arithmetic < Strings add-strings
       case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 */
