@@ -1,0 +1,55 @@
+CALL A: parsePrecedence(PREC_ASSIGNMENT)
+advance() consumes '('
+grouping()
+grouping() calls expression()
+expression() calls parsePrecedence(PREC_ASSIGNMENT)
+CALL B: parsePrecedence(PREC_ASSIGNMENT)
+advance() consumes '-'
+unary()
+unary() calls parsePrecedence(PREC_UNARY)
+CALL C: parsePrecedence(PREC_UNARY)
+advance() consumes '1'
+number()
+number() emits constant 1
+return to unary()
+unary() emits NEGATE
+return to CALL B
+advance() consumes '+'
+binary()
+binary() calls parsePrecedence(PREC_TERM)
+CALL D: parsePrecedence(PREC_TERM)
+advance() consumes '2'
+number()
+number() emits constant 2
+return to binary()
+binary() emits ADD
+return to CALL B
+grouping() consumes ')'
+return to CALL A
+advance() consumes '*'
+binary()
+binary() calls parsePrecedence(PREC_FACTOR)
+CALL E: parsePrecedence(PREC_FACTOR)
+advance() consumes '3'
+number()
+number() emits constant 3
+return to binary()
+binary() emits MULTIPLY
+return to CALL A
+advance() consumes '-'
+binary()
+binary() calls parsePrecedence(PREC_TERM)
+CALL F: parsePrecedence(PREC_TERM)
+advance() consumes '-'
+unary()
+unary() calls parsePrecedence(PREC_UNARY)
+CALL G: parsePrecedence(PREC_UNARY)
+advance() consumes '4'
+number()
+number() emits constant 4
+return to unary()
+unary() emits NEGATE
+return to CALL F
+return to binary()
+binary() emits SUBTRACT
+return to CALL A
