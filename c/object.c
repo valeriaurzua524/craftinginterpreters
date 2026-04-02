@@ -151,6 +151,10 @@ ObjString* takeString(char* chars, int length) {
   FREE_ARRAY(char, chars, length + 1);
   return string;
 }
+
+ObjString* constantString(const char* chars, int length) {
+  return allocateString((char*)chars, length, false);
+}
 //< take-string
 ObjString* copyString(const char* chars, int length) {
   uint32_t hash = hashString(chars, length);
@@ -218,14 +222,13 @@ void printObject(Value value) {
       printf("<native fn>");
       break;
 //< Calls and Functions print-native
-    case OBJ_STRING:
-      printf("%s", AS_CSTRING(value));
-      break;
-//> Closures print-upvalue
-    case OBJ_UPVALUE:
-      printf("upvalue");
-      break;
-//< Closures print-upvalue
+case OBJ_STRING: {
+  ObjString* string = (ObjString*)object;
+  if (string->ownsChars) {
+    FREE_ARRAY(char, string->chars, string->length + 1);
   }
+  FREE(ObjString, object);
+  break;
+}
 }
 //< print-object
