@@ -412,14 +412,26 @@ static void parsePrecedence(Precedence precedence);
 //< Compiling Expressions forward-declarations
 //> Global Variables identifier-constant
 static uint8_t identifierConstant(Token* name) {
-  return makeConstant(OBJ_VAL(copyString(name->start,
-                                         name->length)));
+  Chunk* chunk = currentChunk();
+
+  for (int i = 0; i < chunk->constants.count; i++) {
+    Value constant = chunk->constants.values[i];
+
+    if (IS_STRING(constant)) {
+      ObjString* string = AS_STRING(constant);
+      if (identifiersEqual(name, string)) {
+        return (uint8_t)i;
+      }
+    }
+  }
+
+  return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 //< Global Variables identifier-constant
 //> Local Variables identifiers-equal
-static bool identifiersEqual(Token* a, Token* b) {
+static bool identifiersEqual(Token* a, ObjString* b) {
   if (a->length != b->length) return false;
-  return memcmp(a->start, b->start, a->length) == 0;
+  return memcmp(a->start, b->chars, a->length) == 0;
 }
 //< Local Variables identifiers-equal
 //> Local Variables resolve-local
