@@ -98,7 +98,9 @@ typedef enum {
   OP_INHERIT,
 //< Superclasses inherit-op
 //> Methods and Initializers method-op
-  OP_METHOD
+  OP_METHOD,
+  OP_GET_LOCAL_LONG,
+  OP_SET_LOCAL_LONG,
 //< Methods and Initializers method-op
 } OpCode;
 //< op-enum

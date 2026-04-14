@@ -69,9 +69,7 @@ typedef struct {
 typedef struct {
   Token name;
   int depth;
-//> Closures is-captured-field
   bool isCaptured;
-//< Closures is-captured-field
 } Local;
 //< Local Variables local-struct
 //> Closures upvalue-struct
@@ -100,17 +98,11 @@ typedef struct {
 //> Calls and Functions enclosing-field
 typedef struct Compiler {
   struct Compiler* enclosing;
-//< Calls and Functions enclosing-field
-//> Calls and Functions function-fields
   ObjFunction* function;
   FunctionType type;
-
-//< Calls and Functions function-fields
-  Local locals[UINT8_COUNT];
+  Local locals[LOCALS_MAX];
   int localCount;
-//> Closures upvalues-array
   Upvalue upvalues[UINT8_COUNT];
-//< Closures upvalues-array
   int scopeDepth;
 } Compiler;
 //< Local Variables compiler-struct
@@ -207,6 +199,7 @@ static void consume(TokenType type, const char* message) {
 static bool check(TokenType type) {
   return parser.current.type == type;
 }
+static bool isConstGlobal(Token* name);
 //< Global Variables check
 //> Global Variables match
 static bool match(TokenType type) {
@@ -429,9 +422,9 @@ static uint8_t identifierConstant(Token* name) {
 }
 //< Global Variables identifier-constant
 //> Local Variables identifiers-equal
-static bool identifiersEqual(Token* a, ObjString* b) {
+static bool identifiersEqual(Token* a, Token* b) {
   if (a->length != b->length) return false;
-  return memcmp(a->start, b->chars, a->length) == 0;
+  return memcmp(a->start, b->start, a->length) == 0;
 }
 //< Local Variables identifiers-equal
 //> Local Variables resolve-local
@@ -501,11 +494,16 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 //< Closures resolve-upvalue
 //> Local Variables add-local
 static void addLocal(Token name) {
-//> too-many-locals
-  if (current->localCount == UINT8_COUNT) {
+  if (current->localCount == LOCALS_MAX) {
     error("Too many local variables in function.");
     return;
   }
+
+  Local* local = &current->locals[current->localCount++];
+  local->name = name;
+  local->depth = -1;
+  local->isCaptured = false;
+}
 
 //< too-many-locals
   Local* local = &current->locals[current->localCount++];
@@ -576,6 +574,7 @@ static void defineVariable(uint8_t global) {
 //< Local Variables define-variable
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
+
 //< Global Variables define-variable
 //> Calls and Functions argument-list
 static uint8_t argumentList() {
@@ -644,18 +643,23 @@ static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
   uint8_t name = identifierConstant(&parser.previous);
 
-  if (canAssign && match(TOKEN_EQUAL)) {
-    expression();
-    emitBytes(OP_SET_PROPERTY, name);
-//> Methods and Initializers parse-call
-  } else if (match(TOKEN_LEFT_PAREN)) {
-    uint8_t argCount = argumentList();
-    emitBytes(OP_INVOKE, name);
-    emitByte(argCount);
-//< Methods and Initializers parse-call
+if (canAssign && match(TOKEN_EQUAL)) {
+  if (arg != -1) {
+    if (current->locals[arg].isConst) {
+      error("Can't assign to const variable.");
+      expression();
+      return;
+    }
   } else {
-    emitBytes(OP_GET_PROPERTY, name);
+    if (isConstGlobal(&name)) {
+      error("Can't assign to const variable.");
+      expression();
+      return;
+    }
   }
+
+  expression();
+emitBytes(getOp, (uint8_t)arg);
 }
 //< Classes and Instances compile-dot
 //> Types of Values parse-literal
@@ -728,27 +732,30 @@ static void namedVariable(Token name) {
 */
 //> Global Variables named-variable-signature
 static void namedVariable(Token name, bool canAssign) {
-//< Global Variables named-variable-signature
-/* Global Variables read-named-variable < Local Variables named-local
-  uint8_t arg = identifierConstant(&name);
-*/
-//> Global Variables read-named-variable
-//> Local Variables named-local
-  uint8_t getOp, setOp;
   int arg = resolveLocal(current, &name);
-  if (arg != -1) {
-    getOp = OP_GET_LOCAL;
-    setOp = OP_SET_LOCAL;
-//> Closures named-variable-upvalue
-  } else if ((arg = resolveUpvalue(current, &name)) != -1) {
-    getOp = OP_GET_UPVALUE;
-    setOp = OP_SET_UPVALUE;
-//< Closures named-variable-upvalue
+
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression();
+
+    if (arg != -1) {
+      emitLocalInstruction(OP_SET_LOCAL, OP_SET_LOCAL_LONG, arg);
+    } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+      emitBytes(OP_SET_UPVALUE, (uint8_t)arg);
+    } else {
+      arg = identifierConstant(&name);
+      emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+    }
   } else {
-    arg = identifierConstant(&name);
-    getOp = OP_GET_GLOBAL;
-    setOp = OP_SET_GLOBAL;
+    if (arg != -1) {
+      emitLocalInstruction(OP_GET_LOCAL, OP_GET_LOCAL_LONG, arg);
+    } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+      emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
+    } else {
+      arg = identifierConstant(&name);
+      emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+    }
   }
+}
 //< Local Variables named-local
 /* Global Variables read-named-variable < Global Variables named-variable
   emitBytes(OP_GET_GLOBAL, arg);
@@ -829,6 +836,23 @@ static void super_(bool canAssign) {
     emitBytes(OP_GET_SUPER, name);
   }
 //< super-invoke
+}
+static void emitShort(uint16_t value) {
+  emitByte((value >> 8) & 0xff);
+  emitByte(value & 0xff);
+}
+
+static void emitLocalInstruction(uint8_t shortOp,
+                                 uint8_t longOp,
+                                 int slot) {
+  if (slot <= UINT8_MAX) {
+    emitBytes(shortOp, (uint8_t)slot);
+  } else if (slot <= UINT16_MAX) {
+    emitByte(longOp);
+    emitShort((uint16_t)slot);
+  } else {
+    error("Too many local variables in function.");
+  }
 }
 //< Superclasses super
 //> Methods and Initializers this
@@ -1199,18 +1223,16 @@ static void funDeclaration() {
 }
 //< Calls and Functions fun-declaration
 //> Global Variables var-declaration
-static void varDeclaration() {
+static void declareVariable(bool isConst) {
   uint8_t global = parseVariable("Expect variable name.");
 
-  if (match(TOKEN_EQUAL)) {
-    expression();
-  } else {
-    emitByte(OP_NIL);
+if (match(TOKEN_EQUAL)) {
+  expression();
+} else {
+  if (isConst) {
+    error("Const variables must be initialized.");
   }
-  consume(TOKEN_SEMICOLON,
-          "Expect ';' after variable declaration.");
-
-  defineVariable(global);
+  emitByte(OP_NIL);
 }
 //< Global Variables var-declaration
 //> Global Variables expression-statement
@@ -1230,13 +1252,13 @@ static void forStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';'.");
 */
 //> for-initializer
-  if (match(TOKEN_SEMICOLON)) {
-    // No initializer.
-  } else if (match(TOKEN_VAR)) {
-    varDeclaration();
-  } else {
-    expressionStatement();
-  }
+if (match(TOKEN_VAR)) {
+  varDeclaration(false);
+} else if (match(TOKEN_CONST)) {
+  varDeclaration(true);
+} else {
+  statement();
+}
 //< for-initializer
 
   int loopStart = currentChunk()->count;
