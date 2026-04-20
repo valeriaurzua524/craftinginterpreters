@@ -203,6 +203,13 @@ ObjString* copyString(const char* chars, int length);
 //> Closures new-upvalue-h
 ObjUpvalue* newUpvalue(Value* slot);
 ObjString* constantString(const char* chars, int length);
+struct ObjString {
+  Obj obj;
+  int length;
+  char* chars;
+  uint32_t hash;
+};
+
 
 //< Closures new-upvalue-h
 //> print-object-h
