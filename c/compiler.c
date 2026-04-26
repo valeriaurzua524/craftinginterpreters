@@ -1110,11 +1110,15 @@ static void function(FunctionType type) {
 //< Closures emit-closure
 //> Closures capture-upvalues
 
+if (function->upvalueCount == 0) {
+  emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+} else {
+  emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
+
   for (int i = 0; i < function->upvalueCount; i++) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
   }
-//< Closures capture-upvalues
 }
 //< Calls and Functions compile-function
 //> Methods and Initializers method

@@ -46,6 +46,16 @@ static Entry* findEntry(Entry* entries, int capacity,
       return entry;
     }
 */
+#include <math.h>
+
+static Value sqrtNative(int argCount, Value* args) {
+  if (!IS_NUMBER(args[0])) {
+    runtimeError("Argument must be a number.");
+    return NIL_VAL;
+  }
+  return NUMBER_VAL(sqrt(AS_NUMBER(args[0])));
+}
+
 //> find-tombstone
     if (entry->key == NULL) {
       if (IS_NIL(entry->value)) {

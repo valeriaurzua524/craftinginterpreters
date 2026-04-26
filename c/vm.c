@@ -68,6 +68,9 @@ static void runtimeError(const char* format, ...) {
 /* Calls and Functions runtime-error-stack < Closures runtime-error-function
     ObjFunction* function = frame->function;
 */
+
+CallFrame* frame = &vm.frames[vm.frameCount - 1];
+register uint8_t* ip = frame->ip;
 //> Closures runtime-error-function
     ObjFunction* function = frame->closure->function;
 //< Closures runtime-error-function
@@ -196,6 +199,51 @@ static bool call(ObjClosure* closure, int argCount) {
 //> check-arity
     return false;
   }
+
+static bool callFunction(ObjFunction* function, int argCount) {
+  if (argCount != function->arity) {
+    runtimeError("Expected %d arguments but got %d.",
+                 function->arity, argCount);
+    return false;
+  }
+
+  if (vm.frameCount == FRAMES_MAX) {
+    runtimeError("Stack overflow.");
+    return false;
+  }
+
+fun makeVector(x, y) {
+
+  fun getX() {
+    return x;
+  }
+
+  fun getY() {
+    return y;
+  }
+
+  // this is like our "object"
+  fun vector(method) {
+    if (method == "x") return getX;
+    if (method == "y") return getY;
+  }
+
+  return vector;
+}
+
+// create a vector
+var v = makeVector(3, 4);
+
+// call "methods"
+print v("x")(); // 3
+print v("y")(); // 4
+  CallFrame* frame = &vm.frames[vm.frameCount++];
+  frame->function = function;
+  frame->closure = NULL;
+  frame->ip = function->chunk.code;
+  frame->slots = vm.stackTop - argCount - 1;
+  return true;
+}
 
 //< check-arity
 //> check-overflow
@@ -434,7 +482,30 @@ static InterpretResult run() {
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //< Closures read-constant
+#define READ_BYTE() (*ip++)
 
+case OP_CALL: {
+  int argCount = READ_BYTE();
+
+  frame->ip = ip; // save caller's current position
+
+  if (!callValue(peek(argCount), argCount)) {
+    return INTERPRET_RUNTIME_ERROR;
+  }
+
+  frame = &vm.frames[vm.frameCount - 1];
+  ip = frame->ip; // load new function's ip
+
+  break;
+}
+
+#define READ_SHORT() \
+    (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
+
+#define READ_CONSTANT() \
+    (frame->function->chunk.constants.values[READ_BYTE()])
+
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 //< Calls and Functions run
 //> Global Variables read-string
 #define READ_STRING() AS_STRING(READ_CONSTANT())
