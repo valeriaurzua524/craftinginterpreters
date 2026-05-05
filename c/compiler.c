@@ -1146,6 +1146,18 @@ static void method() {
 //< method-body
   emitBytes(OP_METHOD, constant);
 }
+static void bracket(bool canAssign) {
+  expression(); // this compiles the key inside []
+
+  consume(TOKEN_RIGHT_BRACKET, "Expect ']' after key.");
+
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression(); // value
+    emitByte(OP_SET_PROPERTY_DYNAMIC);
+  } else {
+    emitByte(OP_GET_PROPERTY_DYNAMIC);
+  }
+}
 //< Methods and Initializers method
 //> Classes and Instances class-declaration
 static void classDeclaration() {

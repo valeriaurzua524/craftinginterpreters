@@ -620,8 +620,9 @@ case OP_CALL: {
         ObjString* name = READ_STRING();
         Value value;
         if (!tableGet(&vm.globals, name, &value)) {
-          runtimeError("Undefined variable '%s'.", name->chars);
-          return INTERPRET_RUNTIME_ERROR;
+pop();        // remove instance
+push(NIL_VAL);
+break;
         }
         push(value);
         break;
@@ -632,6 +633,33 @@ case OP_CALL: {
         ObjString* name = READ_STRING();
         tableSet(&vm.globals, name, peek(0));
         pop();
+        break;
+      }
+      case OP_GET_PROPERTY_DYNAMIC: {
+        Value key = pop();          // string key
+        Value obj = peek(0);        // instance
+
+        if (!IS_INSTANCE(obj)) {
+          runtimeError("Only instances have properties.");
+          return INTERPRET_RUNTIME_ERROR;
+        }
+
+        if (!IS_STRING(key)) {
+          runtimeError("Property name must be a string.");
+          return INTERPRET_RUNTIME_ERROR;
+        }
+
+        ObjInstance* instance = AS_INSTANCE(obj);
+        ObjString* name = AS_STRING(key);
+
+        Value value;
+        if (tableGet(&instance->fields, name, &value)) {
+          pop();        // remove instance
+          push(value);
+        } else {
+          pop();
+          push(NIL_VAL); // or error depending what you chose in Q1
+        }
         break;
       }
 //< Global Variables interpret-define-global
