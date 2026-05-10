@@ -1158,6 +1158,13 @@ static void bracket(bool canAssign) {
     emitByte(OP_GET_PROPERTY_DYNAMIC);
   }
 }
+
+[TOKEN_INNER] = {inner_, NULL, PREC_NONE},
+
+static void inner_(bool canAssign) {
+  emitByte(OP_INNER);
+}
+
 //< Methods and Initializers method
 //> Classes and Instances class-declaration
 static void classDeclaration() {

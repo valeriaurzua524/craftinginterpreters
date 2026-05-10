@@ -150,6 +150,8 @@ case OP_SET_LOCAL_LONG:
 //> A Virtual Machine disassemble-binary
     case OP_ADD:
       return simpleInstruction("OP_ADD", offset);
+      case OP_INNER:
+        return simpleInstruction("OP_INNER", offset);
     case OP_SUBTRACT:
       return simpleInstruction("OP_SUBTRACT", offset);
     case OP_MULTIPLY:

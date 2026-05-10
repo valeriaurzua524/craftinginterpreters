@@ -103,6 +103,7 @@ typedef enum {
   OP_SET_LOCAL_LONG,
   OP_GET_PROPERTY_DYNAMIC,
   OP_SET_PROPERTY_DYNAMIC,
+  OP_INNER,
 //< Methods and Initializers method-op
 } OpCode;
 //< op-enum
