@@ -177,6 +177,19 @@ ObjUpvalue* newUpvalue(Value* slot) {
   return upvalue;
 }
 //< Closures new-upvalue
+
+static void defineMethod(ObjString* name) {
+  Value method = peek(0);
+  ObjClass* klass = AS_CLASS(peek(1));
+  tableSet(&klass->methods, name, method);
+
+  if (name == vm.initString) {
+    klass->initializer = method;
+  }
+
+  pop();
+}
+
 //> Calls and Functions print-function-helper
 static void printFunction(ObjFunction* function) {
 //> print-script

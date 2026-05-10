@@ -99,6 +99,15 @@ struct Obj {
 };
 //> Calls and Functions obj-function
 
+Value initializer;
+
+typedef struct {
+  Obj obj;
+  ObjString* name;
+  Value initializer;
+  Table methods;
+} ObjClass;
+
 typedef struct {
   Obj obj;
   int arity;
