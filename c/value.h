@@ -2,11 +2,23 @@
 #ifndef clox_value_h
 #define clox_value_h
 //> Optimization include-string
-
+#define IS_SMALL_STRING(value) ((value).type == VAL_SMALL_STRING)
+#define AS_SMALL_STRING(value) ((value).as.smallString)
+Value smallStringVal(const char* chars, int length);
+bool isStringValue(Value value);
+int stringValueLength(Value value);
+const char* stringValueChars(Value value);
 #include <string.h>
 //< Optimization include-string
 
 #include "common.h"
+
+#define SMALL_STRING_MAX 7
+
+typedef struct {
+  uint8_t length;
+  char chars[SMALL_STRING_MAX + 1];
+} SmallString;
 
 //> Strings forward-declare-obj
 typedef struct Obj Obj;
@@ -100,6 +112,7 @@ typedef enum {
   VAL_BOOL,
   VAL_NIL, // [user-types]
   VAL_NUMBER,
+  VAL_SMALL_STRING,
 //> Strings val-obj
   VAL_OBJ
 //< Strings val-obj
@@ -115,6 +128,7 @@ typedef struct {
   union {
     bool boolean;
     double number;
+    SmallString smallString;
 //> Strings union-object
     Obj* obj;
 //< Strings union-object
