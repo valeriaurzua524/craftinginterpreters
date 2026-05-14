@@ -780,9 +780,10 @@ case OP_NEGATE:
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
         } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-          double b = AS_NUMBER(pop());
-          double a = AS_NUMBER(pop());
-          push(NUMBER_VAL(a + b));
+double b = AS_NUMBER(peek(0));
+double a = AS_NUMBER(peek(1));
+vm.stackTop[-2] = NUMBER_VAL(a + b);
+vm.stackTop--;
         } else {
           runtimeError(
               "Operands must be two numbers or two strings.");
